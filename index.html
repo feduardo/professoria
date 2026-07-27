@@ -7,6 +7,7 @@
 <meta name="theme-color" content="#0B3D91" />
 <link rel="manifest" href="manifest.json" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.11.0/mammoth.browser.min.js"></script>
 <style>
   :root {
     --ink: #1E2A38;
@@ -181,12 +182,12 @@
   </div>
 
   <div class="panel">
-    <label style="margin-top:0;">Analisar seus PDFs</label>
+    <label style="margin-top:0;">Analisar seus PDFs ou Word</label>
     <div class="upload-zone" id="upload-zone">
-      Toque para escolher PDFs, ou arraste aqui<br />
+      Toque para escolher PDFs ou Word (.docx), ou arraste aqui<br />
       <span style="font-size:11.5px;">O texto é extraído no seu navegador e enviado só à Groq/Gemini junto da conversa</span>
     </div>
-    <input type="file" id="pdf-input" accept="application/pdf" multiple />
+    <input type="file" id="pdf-input" accept="application/pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple />
     <div class="doc-list" id="doc-list"></div>
   </div>
 
@@ -338,6 +339,17 @@ async function extractPdfText(file) {
   return text.trim();
 }
 
+async function extractDocxText(file) {
+  const buffer = await file.arrayBuffer();
+  const result = await mammoth.extractRawText({ arrayBuffer: buffer });
+  return result.value.trim();
+}
+
+function isDocx(file) {
+  return file.name.toLowerCase().endsWith(".docx") ||
+    file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+}
+
 function renderUploads() {
   const list = el("doc-list");
   list.innerHTML = "";
@@ -361,10 +373,12 @@ async function handleFiles(fileList) {
   const zone = el("upload-zone");
   const originalText = zone.innerHTML;
   for (const file of Array.from(fileList)) {
-    if (file.type !== "application/pdf") continue;
+    const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    const isWord = isDocx(file);
+    if (!isPdf && !isWord) continue;
     zone.innerHTML = `Lendo ${file.name}...`;
     try {
-      let text = await extractPdfText(file);
+      let text = isPdf ? await extractPdfText(file) : await extractDocxText(file);
       let truncated = false;
       if (text.length > MAX_CHARS_PER_DOC) {
         text = text.slice(0, MAX_CHARS_PER_DOC);
