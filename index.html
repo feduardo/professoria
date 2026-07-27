@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Professor IA — Entrevista CPDO</title>
+<meta name="theme-color" content="#0B3D91" />
+<link rel="manifest" href="manifest.json" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+  :root {
+    --ink: #1E2A38;
+    --paper: #F6F3EC;
+    --card: #FFFFFF;
+    --border: #D8D2C4;
+    --blue: #0B3D91;
+    --muted: #8A8371;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  #gate {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  #gate-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 360px;
+    width: 100%;
+  }
+  #gate-box h2 {
+    margin: 0 0 4px 0;
+    font-size: 17px;
+  }
+  #gate-box p.hint {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 0 0 16px 0;
+    line-height: 1.5;
+  }
+  #gate-box input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  #gate-box button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: var(--blue);
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  #gate-error {
+    color: #A32D2D;
+    font-size: 13px;
+    margin-top: 8px;
+    min-height: 16px;
+  }
+  #app { max-width: 900px; margin: 0 auto; padding: env(safe-area-inset-top) 12px env(safe-area-inset-bottom) 12px; min-height: 100vh; display: none; flex-direction: column; gap: 12px; }
+  header { display: flex; justify-content: space-between; align-items: center; padding: 12px 4px 4px 4px; }
+  header h1 { font-size: 17px; margin: 0; font-weight: 600; }
+  header p { font-size: 12px; color: var(--muted); margin: 2px 0 0 0; }
+  button.icon-btn { background: var(--card); border: 1px solid var(--border); border-radius: 8px; width: 36px; height: 36px; font-size: 16px; cursor: pointer; }
+  .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+  .hidden { display: none !important; }
+  label { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); margin-bottom: 4px; margin-top: 10px; }
+  select, input[type=password], input[type=text] { width: 100%; padding: 9px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--paper); color: var(--ink); font-size: 14px; }
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; }
+  .save-btn { margin-top: 12px; width: 100%; padding: 10px; border: none; border-radius: 8px; background: var(--blue); color: #fff; font-weight: 600; font-size: 14px; cursor: pointer; }
+  .status-row { display: flex; align-items: center; justify-content: space-between; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; }
+  .faixa-badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; }
+  .progress-track { width: 100%; height: 6px; border-radius: 6px; background: #EFEAE0; margin-top: 6px; overflow: hidden; }
+  .progress-fill { height: 100%; transition: width 0.3s ease; }
+  .mode-toggle { display: flex; gap: 8px; }
+  .mode-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--ink); font-size: 13px; font-weight: 600; cursor: pointer; }
+  .mode-btn.active { border-color: var(--blue); background: #EAF0FB; color: var(--blue); }
+  .topics { display: flex; flex-wrap: wrap; gap: 8px; }
+  .topic-chip { padding: 8px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--card); font-size: 12.5px; cursor: pointer; color: var(--ink); }
+  .upload-zone { border: 1px dashed var(--border); border-radius: 10px; padding: 12px; text-align: center; font-size: 13px; color: var(--muted); cursor: pointer; background: var(--card); }
+  .upload-zone.dragover { border-color: var(--blue); background: #EAF0FB; color: var(--blue); }
+  #pdf-input { display: none; }
+  .doc-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .doc-item { display: flex; align-items: center; justify-content: space-between; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 12.5px; }
+  .doc-item .doc-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 65%; }
+  .doc-item .doc-meta { color: var(--muted); font-size: 11.5px; }
+  .doc-remove { background: none; border: none; color: #A32D2D; cursor: pointer; font-size: 13px; padding: 2px 6px; }
+  #chat-window { flex: 1; background: var(--paper); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; min-height: 360px; }
+  #messages { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .msg { max-width: 85%; padding: 10px 12px; border-radius: 10px; font-size: 14.5px; line-height: 1.55; white-space: pre-wrap; }
+  .msg.user { align-self: flex-end; background: var(--blue); color: #fff; }
+  .msg.assistant { align-self: flex-start; background: var(--card); border: 1px solid var(--border); }
+  .empty-hint { color: var(--muted); font-size: 13.5px; padding: 8px; }
+  #input-row { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--border); }
+  #input-row input { flex: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 14.5px; }
+  #input-row button { padding: 10px 16px; border: none; border-radius: 8px; background: var(--blue); color: #fff; font-weight: 600; cursor: pointer; }
+  #input-row button:disabled { opacity: 0.5; }
+  .typing { align-self: flex-start; color: var(--muted); font-size: 13px; padding: 6px 12px; }
+  footer.small-note { text-align: center; color: var(--muted); font-size: 11.5px; padding: 4px 0 10px 0; }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div id="gate-box">
+    <h2 id="gate-title">Configurar servidor</h2>
+    <p class="hint" id="gate-hint">Cole o endereço do seu Worker (só na primeira vez, neste dispositivo).</p>
+    <input type="text" id="worker-url-input" placeholder="https://seu-worker.workers.dev" />
+    <input type="password" id="gate-password" class="hidden" placeholder="Senha" />
+    <button id="gate-submit">Continuar</button>
+    <p id="gate-error"></p>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div>
+      <h1>Professor IA — Entrevista CPDO</h1>
+      <p>Aula e banca examinadora, gratuito, no seu navegador</p>
+    </div>
+    <button class="icon-btn" id="settings-toggle" aria-label="Configurações">⚙</button>
+  </header>
+
+  <div class="panel hidden" id="settings-panel">
+    <div class="row">
+      <div>
+        <label for="provider-select">Provedor</label>
+        <select id="provider-select">
+          <option value="groq">Groq (gratuito)</option>
+          <option value="gemini">Gemini (gratuito)</option>
+        </select>
+      </div>
+      <div>
+        <label for="model-input">Modelo</label>
+        <input type="text" id="model-input" />
+      </div>
+    </div>
+    <label for="apikey-input">Sua chave de API (fica só neste dispositivo)</label>
+    <input type="password" id="apikey-input" placeholder="Cole sua chave gratuita aqui" />
+    <button class="save-btn" id="save-settings">Salvar configurações</button>
+    <p style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5;">
+      Groq: crie sua chave grátis em console.groq.com (sem cartão).<br />
+      Gemini: crie sua chave grátis em aistudio.google.com/app/apikey (sem cartão).
+    </p>
+  </div>
+
+  <div class="status-row">
+    <div>
+      <span class="faixa-badge" id="faixa-badge">Amarela</span>
+      <div class="progress-track" style="width:140px;">
+        <div class="progress-fill" id="progress-fill" style="width:0%; background:#F0B90B;"></div>
+      </div>
+    </div>
+    <div style="text-align:right;font-size:12px;color:var(--muted);">
+      <span id="question-count">0</span> perguntas respondidas
+    </div>
+  </div>
+
+  <div class="mode-toggle">
+    <button class="mode-btn" id="mode-aula">Aula</button>
+    <button class="mode-btn active" id="mode-banca">Banca examinadora</button>
+  </div>
+
+  <div class="panel">
+    <label style="margin-top:0;">Analisar seus PDFs</label>
+    <div class="upload-zone" id="upload-zone">
+      Toque para escolher PDFs, ou arraste aqui<br />
+      <span style="font-size:11.5px;">O texto é extraído no seu navegador e enviado só à Groq/Gemini junto da conversa</span>
+    </div>
+    <input type="file" id="pdf-input" accept="application/pdf" multiple />
+    <div class="doc-list" id="doc-list"></div>
+  </div>
+
+  <div class="topics" id="topics"></div>
+
+  <div id="chat-window">
+    <div id="messages">
+      <p class="empty-hint">Configure sua chave de API acima, escolha um tema ou digite uma mensagem para começar.</p>
+    </div>
+    <div id="input-row">
+      <input type="text" id="text-input" placeholder="Digite sua resposta ou pergunta..." />
+      <button id="send-btn">Enviar</button>
+    </div>
+  </div>
+
+  <footer class="small-note">Reiniciar sessão limpa a conversa e a contagem. <span id="reset-link" style="text-decoration:underline;cursor:pointer;">Reiniciar</span> · <span id="lock-link" style="text-decoration:underline;cursor:pointer;">Bloquear novamente</span></footer>
+</div>
+
+<script>
+const TOPICS = [
+  { label: "Estrutura organizacional", prompt: "Me pergunte sobre a estrutura organizacional da DIOPE e do DELAB." },
+  { label: "Programa Kaizen", prompt: "Me pergunte sobre o Programa Kaizen de Excelencia Operacional." },
+  { label: "Lean e Six Sigma", prompt: "Me pergunte sobre fundamentos de Lean e Six Sigma." },
+  { label: "MANPIN / PD&I", prompt: "Me pergunte sobre o MANPIN e o processo formal de PD&I." },
+  { label: "Portfólio CPDO/MG", prompt: "Me pergunte sobre o portfolio de projetos da CPDO/MG." },
+  { label: "O rito da entrevista", prompt: "Me pergunte sobre as regras do proprio processo de entrevista tecnica." },
+];
+
+const DEFAULT_MODELS = { groq: "llama-3.3-70b-versatile", gemini: "gemini-2.5-flash" };
+
+let KNOWLEDGE_BASE = "";
+
+let state = {
+  provider: localStorage.getItem("pia_provider") || "groq",
+  apiKey: localStorage.getItem("pia_apikey") || "",
+  model: localStorage.getItem("pia_model") || DEFAULT_MODELS[localStorage.getItem("pia_provider") || "groq"],
+  mode: localStorage.getItem("pia_mode") || "banca",
+  count: parseInt(localStorage.getItem("pia_count") || "0", 10),
+  messages: [],
+  loading: false,
+  uploadedDocs: [],
+};
+
+const MAX_CHARS_PER_DOC = 20000;
+const MAX_CHARS_TOTAL = 60000;
+
+const el = (id) => document.getElementById(id);
+
+// ---------- Gate (password-protected knowledge fetch) ----------
+let workerUrl = localStorage.getItem("pia_worker_url") || "";
+
+function showPasswordStep() {
+  el("gate-title").textContent = "Entrar";
+  el("gate-hint").textContent = "Digite a senha para carregar o material de estudo.";
+  el("worker-url-input").classList.add("hidden");
+  el("gate-password").classList.remove("hidden");
+  el("gate-password").focus();
+}
+
+if (workerUrl) showPasswordStep();
+
+el("gate-submit").onclick = async () => {
+  el("gate-error").textContent = "";
+  if (el("worker-url-input").classList.contains("hidden") === false) {
+    const url = el("worker-url-input").value.trim();
+    if (!url) { el("gate-error").textContent = "Cole o endereço do Worker."; return; }
+    workerUrl = url.replace(/\/$/, "");
+    localStorage.setItem("pia_worker_url", workerUrl);
+    showPasswordStep();
+    return;
+  }
+  const password = el("gate-password").value;
+  if (!password) { el("gate-error").textContent = "Digite a senha."; return; }
+  el("gate-submit").disabled = true;
+  el("gate-submit").textContent = "Verificando...";
+  try {
+    const res = await fetch(workerUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      el("gate-error").textContent = data.error || "Senha incorreta.";
+      el("gate-submit").disabled = false;
+      el("gate-submit").textContent = "Continuar";
+      return;
+    }
+    const data = await res.json();
+    KNOWLEDGE_BASE = data.knowledge || "";
+    el("gate").style.display = "none";
+    el("app").style.display = "flex";
+    initApp();
+  } catch (e) {
+    el("gate-error").textContent = "Não foi possível conectar ao servidor. Confira o endereço do Worker.";
+    el("gate-submit").disabled = false;
+    el("gate-submit").textContent = "Continuar";
+  }
+};
+
+el("gate-password").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") el("gate-submit").click();
+});
+
+el("lock-link") && (el("lock-link").onclick = () => {
+  KNOWLEDGE_BASE = "";
+  el("app").style.display = "none";
+  el("gate").style.display = "flex";
+  el("gate-password").value = "";
+  showPasswordStep();
+});
+
+// ---------- App logic (unchanged from previous version, uses fetched KNOWLEDGE_BASE) ----------
+function buildSystem(mode) {
+  const persona = "Voce e um professor e banca examinadora tecnica, ajudando um candidato a se preparar para a entrevista tecnica de designacao para o cargo de Gerente do CPDO/MG dos Correios. Baseie-se prioritariamente na BASE DE CONHECIMENTO fornecida abaixo. Voce pode complementar com conhecimento geral sobre Lean, Six Sigma e gestao quando fizer sentido, deixando claro quando a informacao vem da base interna dos Correios e quando e conhecimento geral de mercado. Responda sempre em portugues do Brasil.";
+  const aula = "MODO ATUAL: AULA. Explique conceitos com clareza, use exemplos concretos ligados aos documentos dos Correios sempre que possivel, e termine cada explicacao com uma pergunta curta de verificacao de entendimento.";
+  const banca = "MODO ATUAL: BANCA EXAMINADORA. Faca UMA pergunta tecnica por vez, no formato de entrevista oral, e espere a resposta antes de continuar. Alterne entre os blocos: (a) estrutura organizacional, (b) Programa Kaizen, (c) Lean e Six Sigma, (d) MANPIN, (e) portfolio da CPDO/MG, (f) o rito da propria entrevista. Varie o formato: definicao direta, aplicacao pratica, cenario hipotetico. Apos cada resposta do candidato: de uma nota de 0 a 10, aponte o que faltou ou estava impreciso, cite de qual parte da base de conhecimento vem a resposta correta, e so entao faca a proxima pergunta. A cada 5 perguntas, pare e resuma os pontos fracos identificados ate ali. Se o candidato disser 'simulado completo', faca 10 perguntas seguidas sem parar para feedback, avaliando tudo apenas no final. Comece sempre com uma pergunta, nunca com uma explicacao longa.";
+  let docsBlock = "";
+  if (state.uploadedDocs.length > 0) {
+    docsBlock = "\n\nDOCUMENTOS ENVIADOS PELO CANDIDATO NESTA SESSAO (PDFs, use tambem como fonte, com a mesma prioridade da base de conhecimento):\n";
+    docsBlock += state.uploadedDocs.map((d) => `--- ${d.name} ---\n${d.text}`).join("\n\n");
+  }
+  return `${persona}\n\n${mode === "banca" ? banca : aula}\n\nBASE DE CONHECIMENTO:\n${KNOWLEDGE_BASE}${docsBlock}`;
+}
+
+function faixaFor(count) {
+  if (count < 5) return { nome: "Amarela", cor: "#F0B90B" };
+  if (count < 12) return { nome: "Azul", cor: "#1D6FD9" };
+  return { nome: "Preta", cor: "#17202A" };
+}
+
+if (window.pdfjsLib) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
+
+function totalUploadedChars() {
+  return state.uploadedDocs.reduce((sum, d) => sum + d.text.length, 0);
+}
+
+async function extractPdfText(file) {
+  const buffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+  let text = "";
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map((it) => it.str).join(" ") + "\n";
+  }
+  return text.trim();
+}
+
+function renderUploads() {
+  const list = el("doc-list");
+  list.innerHTML = "";
+  state.uploadedDocs.forEach((d, idx) => {
+    const row = document.createElement("div");
+    row.className = "doc-item";
+    row.innerHTML = `<span class="doc-name">${d.name}</span><span class="doc-meta">${d.truncated ? "truncado, " : ""}${d.text.length} caracteres</span>`;
+    const btn = document.createElement("button");
+    btn.className = "doc-remove";
+    btn.textContent = "Remover";
+    btn.onclick = () => {
+      state.uploadedDocs.splice(idx, 1);
+      renderUploads();
+    };
+    row.appendChild(btn);
+    list.appendChild(row);
+  });
+}
+
+async function handleFiles(fileList) {
+  const zone = el("upload-zone");
+  const originalText = zone.innerHTML;
+  for (const file of Array.from(fileList)) {
+    if (file.type !== "application/pdf") continue;
+    zone.innerHTML = `Lendo ${file.name}...`;
+    try {
+      let text = await extractPdfText(file);
+      let truncated = false;
+      if (text.length > MAX_CHARS_PER_DOC) {
+        text = text.slice(0, MAX_CHARS_PER_DOC);
+        truncated = true;
+      }
+      if (totalUploadedChars() + text.length > MAX_CHARS_TOTAL) {
+        const remaining = Math.max(0, MAX_CHARS_TOTAL - totalUploadedChars());
+        text = text.slice(0, remaining);
+        truncated = true;
+      }
+      state.uploadedDocs.push({ name: file.name, text, truncated });
+    } catch (e) {
+      alert("Não foi possível ler " + file.name + ": " + e.message);
+    }
+  }
+  zone.innerHTML = originalText;
+  renderUploads();
+}
+
+function renderTopics() {
+  const container = el("topics");
+  container.innerHTML = "";
+  TOPICS.forEach((t) => {
+    const btn = document.createElement("button");
+    btn.className = "topic-chip";
+    btn.textContent = t.label;
+    btn.onclick = () => sendMessage(t.prompt);
+    container.appendChild(btn);
+  });
+}
+
+function renderStatus() {
+  const f = faixaFor(state.count);
+  const badge = el("faixa-badge");
+  badge.textContent = f.nome;
+  badge.style.background = f.cor;
+  badge.style.color = f.nome === "Amarela" ? "#17202A" : "#FFFFFF";
+  el("progress-fill").style.width = Math.min(100, Math.round((state.count / 12) * 100)) + "%";
+  el("progress-fill").style.background = f.cor;
+  el("question-count").textContent = state.count;
+  el("mode-aula").classList.toggle("active", state.mode === "aula");
+  el("mode-banca").classList.toggle("active", state.mode === "banca");
+}
+
+function renderMessages() {
+  const box = el("messages");
+  if (state.messages.length === 0) {
+    box.innerHTML = '<p class="empty-hint">Escolha um tema ou digite uma mensagem para começar.</p>';
+    return;
+  }
+  box.innerHTML = "";
+  state.messages.forEach((m) => {
+    const div = document.createElement("div");
+    div.className = "msg " + m.role;
+    div.textContent = m.content;
+    box.appendChild(div);
+  });
+  if (state.loading) {
+    const typing = document.createElement("div");
+    typing.className = "typing";
+    typing.textContent = "Pensando...";
+    box.appendChild(typing);
+  }
+  box.scrollTop = box.scrollHeight;
+}
+
+async function callGroq(system, history) {
+  const messages = [{ role: "system", content: system }, ...history.map((m) => ({ role: m.role, content: m.content }))];
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + state.apiKey },
+    body: JSON.stringify({ model: state.model, messages }),
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message || "Erro na API Groq");
+  return data.choices[0].message.content;
+}
+
+async function callGemini(system, history) {
+  const contents = history.map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] }));
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${state.model}:generateContent?key=${state.apiKey}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ system_instruction: { parts: [{ text: system }] }, contents }),
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message || "Erro na API Gemini");
+  return data.candidates[0].content.parts.map((p) => p.text).join("");
+}
+
+async function sendMessage(text) {
+  if (!text || !text.trim() || state.loading) return;
+  if (!state.apiKey) {
+    alert("Configure sua chave de API primeiro (ícone de engrenagem no topo).");
+    el("settings-panel").classList.remove("hidden");
+    return;
+  }
+  state.messages.push({ role: "user", content: text });
+  if (state.mode === "banca") { state.count += 1; localStorage.setItem("pia_count", state.count); }
+  state.loading = true;
+  renderMessages();
+  renderStatus();
+  el("text-input").value = "";
+
+  try {
+    const system = buildSystem(state.mode);
+    const reply = state.provider === "groq" ? await callGroq(system, state.messages) : await callGemini(system, state.messages);
+    state.messages.push({ role: "assistant", content: reply });
+  } catch (e) {
+    state.messages.push({ role: "assistant", content: "Erro ao contatar a API: " + e.message });
+  } finally {
+    state.loading = false;
+    renderMessages();
+  }
+}
+
+function initApp() {
+  el("provider-select").value = state.provider;
+  el("model-input").value = state.model;
+  el("apikey-input").value = state.apiKey;
+  renderTopics();
+  renderUploads();
+  renderStatus();
+  renderMessages();
+  if (!state.apiKey) el("settings-panel").classList.remove("hidden");
+}
+
+el("upload-zone").onclick = () => el("pdf-input").click();
+el("pdf-input").addEventListener("change", (e) => handleFiles(e.target.files));
+["dragover", "dragenter"].forEach((evt) =>
+  el("upload-zone").addEventListener(evt, (e) => { e.preventDefault(); el("upload-zone").classList.add("dragover"); })
+);
+["dragleave", "drop"].forEach((evt) =>
+  el("upload-zone").addEventListener(evt, (e) => { e.preventDefault(); el("upload-zone").classList.remove("dragover"); })
+);
+el("upload-zone").addEventListener("drop", (e) => { if (e.dataTransfer.files) handleFiles(e.dataTransfer.files); });
+
+el("settings-toggle").onclick = () => el("settings-panel").classList.toggle("hidden");
+el("provider-select").onchange = (e) => { el("model-input").value = DEFAULT_MODELS[e.target.value]; };
+el("save-settings").onclick = () => {
+  state.provider = el("provider-select").value;
+  state.model = el("model-input").value.trim() || DEFAULT_MODELS[state.provider];
+  state.apiKey = el("apikey-input").value.trim();
+  localStorage.setItem("pia_provider", state.provider);
+  localStorage.setItem("pia_model", state.model);
+  localStorage.setItem("pia_apikey", state.apiKey);
+  el("settings-panel").classList.add("hidden");
+};
+el("mode-aula").onclick = () => { state.mode = "aula"; localStorage.setItem("pia_mode", "aula"); renderStatus(); };
+el("mode-banca").onclick = () => { state.mode = "banca"; localStorage.setItem("pia_mode", "banca"); renderStatus(); };
+el("send-btn").onclick = () => sendMessage(el("text-input").value);
+el("text-input").addEventListener("keydown", (e) => { if (e.key === "Enter") sendMessage(el("text-input").value); });
+el("reset-link").onclick = () => {
+  state.messages = [];
+  state.count = 0;
+  localStorage.setItem("pia_count", "0");
+  renderMessages();
+  renderStatus();
+};
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
+}
+</script>
+</body>
+</html>
